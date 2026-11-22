@@ -26,7 +26,7 @@ export default function Dashboard() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [subtitle, setSubtitle] = useState("Your subtitles will appear here");
   const [subtitleMode, setSubtitleMode] = useState("sentence");
-
+  const [subtitleChunks, setSubtitleChunks] = useState([]);
   const [fontFamily, setFontFamily] = useState("Arial");
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState("#ffffff");
@@ -260,9 +260,10 @@ export default function Dashboard() {
         <Transcription
           videoFile={video}
           onTranscriptionComplete={(data) => {
-            setSubtitle(data.text);
-            setSubtitleMode("sentence");
-          }}
+  setSubtitle(data.text);
+  setSubtitleChunks(data.chunks || []);
+  setSubtitleMode("sentence");
+}}
         />
            
           <div style={styles.positionRow}>
