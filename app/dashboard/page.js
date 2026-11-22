@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [subtitle, setSubtitle] = useState("Your subtitles will appear here");
   const [subtitleMode, setSubtitleMode] = useState("sentence");
   const [subtitleChunks, setSubtitleChunks] = useState([]);
+  const [currentTime, setCurrentTime] = useState(0);
   const [fontFamily, setFontFamily] = useState("Arial");
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState("#ffffff");
