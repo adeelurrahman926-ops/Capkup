@@ -10,6 +10,7 @@
   },
 "dependencies": {
   "@ffmpeg/ffmpeg": "^0.12.15",
+  "@ffmpeg/core": "^0.12.10",
   "@ffmpeg/util": "^0.12.2",
   "@huggingface/transformers": "^4.3.2",
   "@supabase/ssr": "^0.6.1",
