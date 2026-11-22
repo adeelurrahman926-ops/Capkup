@@ -120,22 +120,12 @@ console.log("Starting FFmpeg video processing...");
         `Shadow=1,Alignment=2,MarginV=80`;
 
       await ffmpeg.exec([
-        "-i",
-        "input.mp4",
-        "-vf",
-        `subtitles=captions.srt:force_style='${style}'`,
-        "-c:v",
-        "libx264",
-        "-preset",
-        "ultrafast",
-        "-crf",
-        "23",
-        "-c:a",
-        "aac",
-        "-b:a",
-        "128k",
-        "output.mp4",
-      ]);
+  "-i",
+  "input.mp4",
+  "-c",
+  "copy",
+  "output.mp4",
+]);
 
       setProgress(90);
 
