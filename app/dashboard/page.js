@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
-
+import Transcription from "./transcription";
 const templates = [
   { name: "Classic White", color: "#ffffff", bg: "#000000" },
   { name: "Yellow Highlight", color: "#ffff00", bg: "#000000" },
