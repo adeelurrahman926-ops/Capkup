@@ -249,7 +249,13 @@ export default function Dashboard() {
                   borderRadius: bgMode === "none" ? "0" : "6px",
                 }}
               >
-                {subtitle || "Your subtitles"}
+                {subtitleChunks.length > 0
+  ? subtitleChunks.find(
+      (chunk) =>
+        currentTime >= chunk.start &&
+        currentTime <= chunk.end
+    )?.text || ""
+  : subtitle || "Your subtitles"}
               </div>
             )}
           </div>
