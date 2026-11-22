@@ -213,7 +213,7 @@ export default function Dashboard() {
             setSubtitleMode("sentence");
           }}
         />
-          
+         
         <div style={styles.panel}>
           <h3 style={styles.sectionTitle}>2. Video Preview</h3>
 
