@@ -214,10 +214,11 @@ export default function Dashboard() {
           <div ref={previewRef} style={styles.preview}>
             {previewUrl ? (
               <video
-                src={previewUrl}
-                controls
-                style={styles.video}
-              />
+  src={previewUrl}
+  controls
+  onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
+  style={styles.video}
+/>
             ) : (
               <div style={styles.emptyPreview}>
                 Your video preview will appear here
