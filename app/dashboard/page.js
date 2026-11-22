@@ -206,13 +206,6 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-        <Transcription
-          videoFile={video}
-          onTranscriptionComplete={(data) => {
-            setSubtitle(data.text);
-            setSubtitleMode("sentence");
-          }}
-        />
          
         <div style={styles.panel}>
           <h3 style={styles.sectionTitle}>2. Video Preview</h3>
@@ -263,7 +256,15 @@ export default function Dashboard() {
             Drag the subtitle with your finger or mouse to move it anywhere
             inside the video.
           </p>
-
+             
+        <Transcription
+          videoFile={video}
+          onTranscriptionComplete={(data) => {
+            setSubtitle(data.text);
+            setSubtitleMode("sentence");
+          }}
+        />
+           
           <div style={styles.positionRow}>
             <span style={styles.positionText}>
               Position: {positionMode === "automatic" ? "Automatic" : "Custom"}
