@@ -5,6 +5,19 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
 
+const templates = [
+  { name: "Classic White", color: "#ffffff", bg: "#000000", size: 28, bold: true, outline: true, position: "bottom" },
+  { name: "Yellow Highlight", color: "#ffe600", bg: "transparent", size: 32, bold: true, outline: true, position: "bottom" },
+  { name: "Neon Green", color: "#39ff14", bg: "#111111", size: 30, bold: true, outline: false, position: "bottom" },
+  { name: "Red Alert", color: "#ff3030", bg: "transparent", size: 32, bold: true, outline: true, position: "middle" },
+  { name: "Blue Modern", color: "#65c7ff", bg: "#101c35", size: 28, bold: true, outline: false, position: "bottom" },
+  { name: "Pink Pop", color: "#ff8edb", bg: "transparent", size: 34, bold: true, outline: true, position: "middle" },
+  { name: "Clean Minimal", color: "#ffffff", bg: "transparent", size: 25, bold: false, outline: false, position: "bottom" },
+  { name: "Gold Premium", color: "#ffd166", bg: "#30230b", size: 30, bold: true, outline: false, position: "bottom" },
+  { name: "Social Media", color: "#ffffff", bg: "#6546d7", size: 32, bold: true, outline: false, position: "middle" },
+  { name: "Cinema Style", color: "#ffffff", bg: "#000000", size: 26, bold: false, outline: true, position: "bottom" }
+];
+
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabase(), []);
@@ -14,16 +27,19 @@ export default function DashboardPage() {
   const [subtitle, setSubtitle] = useState("Your subtitles will appear here.");
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState("#ffffff");
-  const [bgColor, setBgColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("transparent");
   const [position, setPosition] = useState("bottom");
   const [fontFamily, setFontFamily] = useState("Arial");
   const [bold, setBold] = useState(true);
   const [outline, setOutline] = useState(true);
   const [captionMode, setCaptionMode] = useState("sentence");
+  const [fontUrl, setFontUrl] = useState("");
+  const [fontName, setFontName] = useState("");
 
-  const previewUrl = useMemo(() => {
-    return file ? URL.createObjectURL(file) : "";
-  }, [file]);
+  const previewUrl = useMemo(
+    () => file ? URL.createObjectURL(file) : "",
+    [file]
+  );
 
   useEffect(() => {
     let active = true;
@@ -43,6 +59,12 @@ export default function DashboardPage() {
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    return () => {
+      if (fontUrl) URL.revokeObjectURL(fontUrl);
+    };
+  }, [fontUrl]);
+
   function handleFile(event) {
     const selected = event.target.files?.[0];
     if (!selected) return;
@@ -55,17 +77,48 @@ export default function DashboardPage() {
     setFile(selected);
   }
 
+  function handleFontUpload(event) {
+    const selected = event.target.files?.[0];
+    if (!selected) return;
+
+    const allowed = /\.(ttf|otf|woff|woff2)$/i.test(selected.name);
+
+    if (!allowed) {
+      alert("Please upload a TTF, OTF, WOFF or WOFF2 font file.");
+      return;
+    }
+
+    const url = URL.createObjectURL(selected);
+    setFontUrl(url);
+    setFontName(selected.name);
+    setFontFamily("UserUploadedFont");
+  }
+
+  function applyTemplate(template) {
+    setFontColor(template.color);
+    setBgColor(template.bg);
+    setFontSize(template.size);
+    setBold(template.bold);
+    setOutline(template.outline);
+    setPosition(template.position);
+    setFontFamily("Arial");
+  }
+
   async function handleLogout() {
     await supabase.auth.signOut();
     router.replace("/login");
   }
 
   if (loading) {
-    return <main style={{ padding: 40, color: "white", background: "#090d18", minHeight: "100vh" }}>Loading...</main>;
+    return (
+      <main style={{ padding: 40, color: "white", background: "#090d18", minHeight: "100vh" }}>
+        Loading...
+      </main>
+    );
   }
 
   const buttonStyle = {
-    padding: "10px 14px",
+    padding: "12px 15px",
     background: "#27334d",
     color: "white",
     border: "1px solid #43516c",
@@ -76,7 +129,7 @@ export default function DashboardPage() {
   const labelStyle = {
     display: "block",
     color: "#b8c4da",
-    marginBottom: 8,
+    marginBottom: 9,
     fontSize: 14
   };
 
@@ -88,8 +141,16 @@ export default function DashboardPage() {
       padding: "24px 16px",
       fontFamily: "Arial, sans-serif"
     }}>
-      <div style={{ maxWidth: 1100, margin: "auto" }}>
+      {fontUrl && (
+        <style>
+          {`@font-face {
+            font-family: "UserUploadedFont";
+            src: url("${fontUrl}");
+          }`}
+        </style>
+      )}
 
+      <div style={{ maxWidth: 1100, margin: "auto" }}>
         <header style={{
           display: "flex",
           justifyContent: "space-between",
@@ -102,23 +163,52 @@ export default function DashboardPage() {
 
         <h1 style={{ fontSize: 30 }}>Subtitle Editor</h1>
         <p style={{ color: "#aab4c8" }}>
-          Upload your video and customize your subtitles.
+          Upload your video and customize your captions.
         </p>
 
         <section style={{
           background: "#141c2e",
-          padding: 20,
+          padding: 22,
           borderRadius: 14,
           marginTop: 24
         }}>
           <h3>1. Upload Video</h3>
 
-          <input
-            type="file"
-            accept="video/*"
-            onChange={handleFile}
-            style={{ display: "block", marginTop: 15, color: "white" }}
-          />
+          <label style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            marginTop: 18,
+            padding: "35px 15px",
+            minHeight: 170,
+            border: "2px dashed #6478ff",
+            borderRadius: 14,
+            background: "#1b2740",
+            cursor: "pointer",
+            textAlign: "center"
+          }}>
+            <span style={{ fontSize: 42 }}>📁</span>
+            <strong style={{ fontSize: 19 }}>Choose Your Video</strong>
+            <span style={{ color: "#aab4c8", fontSize: 13 }}>
+              Select MP4, MOV, WebM and other video files
+            </span>
+            <span style={{
+              background: "#6478ff",
+              padding: "13px 30px",
+              borderRadius: 9,
+              fontWeight: "bold"
+            }}>
+              Browse Videos
+            </span>
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleFile}
+              style={{ display: "none" }}
+            />
+          </label>
 
           {file && (
             <p style={{ color: "#aab4c8", overflowWrap: "anywhere" }}>
@@ -167,14 +257,16 @@ export default function DashboardPage() {
                 right: "5%",
                 textAlign: "center",
                 pointerEvents: "none",
-                ...(position === "top" ? { top: 25 } :
-                   position === "middle" ? { top: "45%" } :
-                   { bottom: 55 })
+                ...(position === "top"
+                  ? { top: 25 }
+                  : position === "middle"
+                  ? { top: "45%" }
+                  : { bottom: 55 })
               }}>
                 <span style={{
                   display: "inline-block",
                   color: fontColor,
-                  background: bgColor === "transparent" ? "transparent" : bgColor,
+                  background: bgColor,
                   padding: "7px 12px",
                   borderRadius: 6,
                   fontSize: `${fontSize}px`,
@@ -187,10 +279,9 @@ export default function DashboardPage() {
                 }}>
                   {captionMode === "word"
                     ? subtitle.split(" ").map((word, index) => (
-                        <span key={index} style={{
-                          display: "inline-block",
-                          marginRight: 7
-                        }}>{word}</span>
+                        <span key={index} style={{ marginRight: 7 }}>
+                          {word}
+                        </span>
                       ))
                     : subtitle}
                 </span>
@@ -206,8 +297,6 @@ export default function DashboardPage() {
           marginTop: 20
         }}>
           <h3>3. Subtitle Text</h3>
-
-          <label style={labelStyle}>Edit your subtitle</label>
           <textarea
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
@@ -219,18 +308,16 @@ export default function DashboardPage() {
               background: "#090d18",
               color: "white",
               border: "1px solid #43516c",
-              fontSize: 16
+              fontSize: 16,
+              marginTop: 12
             }}
           />
 
-          <label style={{ ...labelStyle, marginTop: 18 }}>Caption Style</label>
+          <label style={{ ...labelStyle, marginTop: 18 }}>Caption Mode</label>
           <select
             value={captionMode}
             onChange={(e) => setCaptionMode(e.target.value)}
-            style={{
-              ...buttonStyle,
-              width: "100%"
-            }}
+            style={{ ...buttonStyle, width: "100%" }}
           >
             <option value="sentence">Normal Sentence</option>
             <option value="word">Word by Word Preview</option>
@@ -243,21 +330,74 @@ export default function DashboardPage() {
           borderRadius: 14,
           marginTop: 20
         }}>
-          <h3>4. Customize Subtitles</h3>
+          <h3>4. Caption Templates</h3>
+          <p style={{ color: "#aab4c8", fontSize: 13 }}>
+            Choose any template to apply its caption style.
+          </p>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
+            gap: 12,
+            marginTop: 18
+          }}>
+            {templates.map((template) => (
+              <button
+                key={template.name}
+                onClick={() => applyTemplate(template)}
+                style={{
+                  background: "#090d18",
+                  border: "1px solid #43516c",
+                  borderRadius: 10,
+                  padding: "18px 8px",
+                  color: template.color,
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  cursor: "pointer",
+                  textShadow: template.outline ? "1px 1px 2px black" : "none"
+                }}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section style={{
+          background: "#141c2e",
+          padding: 20,
+          borderRadius: 14,
+          marginTop: 20
+        }}>
+          <h3>5. Customize Font</h3>
+
+          <label style={labelStyle}>Font Style</label>
+          <select
+            value={fontFamily}
+            onChange={(e) => setFontFamily(e.target.value)}
+            style={{ ...buttonStyle, width: "100%" }}
+          >
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="Impact">Impact</option>
+            {fontUrl && <option value="UserUploadedFont">My Uploaded Font</option>}
+          </select>
 
           <div style={{ marginTop: 20 }}>
-            <label style={labelStyle}>Font Style</label>
-            <select
-              value={fontFamily}
-              onChange={(e) => setFontFamily(e.target.value)}
-              style={{ ...buttonStyle, width: "100%" }}
-            >
-              <option value="Arial">Arial</option>
-              <option value="Verdana">Verdana</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Tahoma">Tahoma</option>
-              <option value="Impact">Impact</option>
-            </select>
+            <label style={labelStyle}>Upload Your Own Font</label>
+            <input
+              type="file"
+              accept=".ttf,.otf,.woff,.woff2"
+              onChange={handleFontUpload}
+              style={{ color: "white", width: "100%" }}
+            />
+            {fontName && (
+              <p style={{ color: "#8b9cff", fontSize: 13 }}>
+                Uploaded: {fontName}
+              </p>
+            )}
           </div>
 
           <div style={{ marginTop: 20 }}>
@@ -272,7 +412,12 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginTop: 20 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 18,
+            marginTop: 20
+          }}>
             <div>
               <label style={labelStyle}>Text Colour</label>
               <input
@@ -295,10 +440,14 @@ export default function DashboardPage() {
           </div>
 
           <button
-            style={{ ...buttonStyle, marginTop: 14 }}
+            style={{
+              ...buttonStyle,
+              marginTop: 14,
+              background: bgColor === "transparent" ? "#6478ff" : "#27334d"
+            }}
             onClick={() => setBgColor("transparent")}
           >
-            Transparent Background
+            No Background
           </button>
 
           <div style={{ marginTop: 20 }}>
@@ -314,7 +463,12 @@ export default function DashboardPage() {
             </select>
           </div>
 
-          <div style={{ display: "flex", gap: 25, flexWrap: "wrap", marginTop: 22 }}>
+          <div style={{
+            display: "flex",
+            gap: 25,
+            flexWrap: "wrap",
+            marginTop: 22
+          }}>
             <label>
               <input
                 type="checkbox"
@@ -339,9 +493,8 @@ export default function DashboardPage() {
           marginTop: 25,
           fontSize: 13
         }}>
-          Automatic transcription and MP4 export will be connected in the next stage.
+          Automatic transcription and MP4 export are coming in the next stage.
         </p>
-
       </div>
     </main>
   );
