@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAPKUP AI | Auto Captions</title>
+<style>
+:root{color-scheme:dark;--bg:#090a12;--panel:#131522;--panel2:#1a1d2d;--line:#292d42;--text:#f6f5ff;--muted:#a4a7bd;--purple:#9874ff;--cyan:#62d8e8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#29204b 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,Arial,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:20px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 0 26px}.brand{font-size:23px;font-weight:850;letter-spacing:1px}.brand span{color:var(--purple)}.pill{border:1px solid #4b3e76;background:#211b37;color:#c8baff;border-radius:30px;padding:6px 12px;font-size:12px;font-weight:700}
+.hero{margin:8px 0 24px}.hero h1{font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 10px;letter-spacing:-1.5px}.hero h1 em{font-style:normal;color:#b39aff}.hero p{color:var(--muted);margin:0;max-width:650px}
+.grid{display:grid;grid-template-columns:1.05fr .95fr;gap:18px}.card{background:linear-gradient(160deg,#171a2a,#10121d);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 14px 40px #0003}.card h2{font-size:17px;margin:0 0 4px}.sub{font-size:13px;color:var(--muted);margin:0 0 17px}
+.drop{border:1.5px dashed #61518d;background:#171529;border-radius:14px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;cursor:pointer;transition:.2s}.drop:hover{border-color:var(--purple);background:#201b36}.upload-icon{font-size:34px;color:#b49aff;margin-bottom:8px}.drop strong{font-size:15px}.drop small{color:var(--muted);margin-top:5px}.btn{border:0;border-radius:11px;background:linear-gradient(100deg,#8a66f5,#6f5be8);color:white;font-weight:750;padding:12px 17px;cursor:pointer;font-size:14px}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.secondary{background:#25283a;border:1px solid #383d55}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{margin:15px 0}.field label{display:block;font-size:13px;color:#c7c9d9;margin-bottom:7px}.field select,.field input{width:100%;background:#0d0f19;color:var(--text);border:1px solid #34384e;border-radius:10px;padding:12px;font:inherit;outline:none}.field select:focus,.field input:focus{border-color:var(--purple)}
+.segment{display:flex;background:#0d0f19;border:1px solid #30344a;border-radius:11px;padding:4px;gap:4px}.segment button{flex:1;background:transparent;color:var(--muted);border:0;border-radius:8px;padding:10px 7px;font-size:13px;cursor:pointer}.segment button.active{background:#30264d;color:#e5dcff}
+.preview{background:#080910;border:1px solid #292d42;border-radius:14px;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.preview video{width:100%;max-height:360px;display:none}.empty{text-align:center;color:var(--muted);padding:25px}.sample-caption{position:absolute;bottom:22px;left:10px;right:10px;text-align:center;font-weight:850;font-size:20px;text-shadow:0 2px 5px #000;background:#0005;padding:6px}.sample-caption span{color:#ffe36e}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.check{display:flex;align-items:center;gap:9px;color:#d8d9e6;font-size:13px}.check input{accent-color:var(--purple);width:17px;height:17px}
+.status{font-size:12px;color:var(--muted);margin-top:12px;min-height:18px}.notice{border:1px solid #3d355c;background:#19162a;color:#c7bedf;padding:12px 14px;border-radius:12px;font-size:12px;margin-top:18px}.footer{color:#777b92;text-align:center;font-size:12px;padding:26px 0 10px}
+@media(max-width:760px){.wrap{padding:15px}.grid{grid-template-columns:1fr}.top{padding-bottom:18px}.card{padding:16px}.drop{min-height:190px}.controls{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">CAPKUP <span>AI</span></div><div class="pill">FREE TO USE</div></header>
+<section class="hero"><h1>Your video. <em>Captions ready.</em></h1><p>Generate subtitles, style every word, and prepare videos for Shorts, Reels and TikTok.</p></section>
+<main class="grid">
+<section class="card">
+<h2>1. Upload your video</h2><p class="sub">Choose a video from your phone or computer.</p>
+<label class="drop" for="videoFile"><div class="upload-icon">↑</div><strong>Tap to upload a video</strong><small>MP4 or MOV · Select a file from your device</small><input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/*" hidden></label>
+<div class="field"><label for="language">Spoken language</label><select id="language"><option value="auto">Auto detect language</option><option>English</option><option>Urdu</option><option>Hindi</option><option>Arabic</option><option>Spanish</option><option>French</option><option>German</option><option>Portuguese</option><option>Turkish</option><option>Russian</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Italian</option><option>Bengali</option><option>Punjabi</option><option>Indonesian</option><option>Persian</option><option>Pashto</option><option>Other</option></select></div>
+<div class="field"><label>Caption style</label><div class="segment"><button class="active" id="wordBtn" type="button">Word by word</button><button id="sentenceBtn" type="button">Normal subtitles</button></div></div>
+<div class="field"><label for="translate">Subtitle language</label><select id="translate"><option>Same as spoken language</option><option>English</option><option>Urdu</option><option>Hindi</option><option>Arabic</option><option>Spanish</option><option>French</option><option>German</option><option>Turkish</option><option>Portuguese</option><option>Punjabi</option></select></div>
+<button class="btn" id="generate" disabled style="width:100%">Generate captions ✨</button>
+<div class="status" id="status">Upload a video to begin.</div>
+</section>
+<section class="card">
+<h2>2. Preview & style</h2><p class="sub">Check your video and caption appearance.</p>
+<div class="preview"><div class="empty" id="empty">Your video preview will appear here.<br><small>Upload a video to see it.</small></div><video id="videoPreview" controls playsinline></video><div class="sample-caption" id="sampleCaption" style="display:none">Your <span>captions</span> here</div></div>
+<div class="controls">
+<div class="field"><label for="font">Font style</label><select id="font"><option>Bold</option><option>Clean</option><option>Classic</option></select></div>
+<div class="field"><label for="color">Caption color</label><select id="color"><option value="white">White</option><option value="yellow">Yellow</option><option value="cyan">Cyan</option></select></div>
+<div class="field"><label for="size">Text size</label><select id="size"><option value="20">Medium</option><option value="25">Large</option><option value="16">Small</option></select></div>
+<div class="field"><label for="position">Position</label><select id="position"><option value="bottom">Bottom</option><option value="middle">Middle</option><option value="top">Top</option></select></div>
+</div>
+<div class="row"><label class="check"><input type="checkbox" id="outline" checked> Text outline</label><label class="check"><input type="checkbox" id="highlight" checked> Highlight active word</label></div>
+<div class="notice">This is the first interface prototype. Real AI transcription, accurate subtitle timing, account login and MP4 rendering will be connected in the next development stage.</div>
+</section>
+</main>
+<div class="footer">CAPKUP AI · Automatic captions for your videos</div>
+</div>
+<script>
+const file=document.getElementById('videoFile'),video=document.getElementById('videoPreview'),empty=document.getElementById('empty'),sample=document.getElementById('sampleCaption'),generate=document.getElementById('generate'),status=document.getElementById('status');
+let style='word';
+file.addEventListener('change',()=>{const f=file.files[0];if(!f)return;video.src=URL.createObjectURL(f);video.style.display='block';empty.style.display='none';sample.style.display='block';generate.disabled=false;status.textContent='Video selected: '+f.name+' · Ready for the next step.'});
+function choose(s){style=s;document.getElementById('wordBtn').classList.toggle('active',s==='word');document.getElementById('sentenceBtn').classList.toggle('active',s==='sentence');sample.innerHTML=s==='word'?'Your <span>captions</span> here':'Your captions will appear here';}
+document.getElementById('wordBtn').onclick=()=>choose('word');document.getElementById('sentenceBtn').onclick=()=>choose('sentence');
+document.getElementById('color').onchange=e=>sample.style.color=e.target.value;
+document.getElementById('size').onchange=e=>sample.style.fontSize=e.target.value+'px';
+document.getElementById('position').onchange=e=>{sample.style.top=e.target.value==='top'?'18px':e.target.value==='middle'?'45%':'auto';sample.style.bottom=e.target.value==='bottom'?'22px':'auto';};
+document.getElementById('outline').onchange=e=>sample.style.webkitTextStroke=e.target.checked?'1px #000':'0';
+document.getElementById('generate').onclick=()=>{status.textContent='AI caption processing is not connected yet. This will be enabled after we connect the transcription service.';};
+</script>
+</body></html>
