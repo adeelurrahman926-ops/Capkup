@@ -1,57 +1,64 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
 
 const templates = [
-  { name: "Classic White", color: "#ffffff", bg: "#000000", size: 28, bold: true, outline: true, position: "bottom" },
-  { name: "Yellow Highlight", color: "#ffe600", bg: "transparent", size: 32, bold: true, outline: true, position: "bottom" },
-  { name: "Neon Green", color: "#39ff14", bg: "#111111", size: 30, bold: true, outline: false, position: "bottom" },
-  { name: "Red Alert", color: "#ff3030", bg: "transparent", size: 32, bold: true, outline: true, position: "middle" },
-  { name: "Blue Modern", color: "#65c7ff", bg: "#101c35", size: 28, bold: true, outline: false, position: "bottom" },
-  { name: "Pink Pop", color: "#ff8edb", bg: "transparent", size: 34, bold: true, outline: true, position: "middle" },
-  { name: "Clean Minimal", color: "#ffffff", bg: "transparent", size: 25, bold: false, outline: false, position: "bottom" },
-  { name: "Gold Premium", color: "#ffd166", bg: "#30230b", size: 30, bold: true, outline: false, position: "bottom" },
-  { name: "Social Media", color: "#ffffff", bg: "#6546d7", size: 32, bold: true, outline: false, position: "middle" },
-  { name: "Cinema Style", color: "#ffffff", bg: "#000000", size: 26, bold: false, outline: true, position: "bottom" }
+  { name: "Classic White", color: "#ffffff", bg: "#000000" },
+  { name: "Yellow Highlight", color: "#ffff00", bg: "#000000" },
+  { name: "Neon Green", color: "#39ff14", bg: "#000000" },
+  { name: "Red Alert", color: "#ff3333", bg: "#000000" },
+  { name: "Blue Modern", color: "#40a9ff", bg: "#000000" },
+  { name: "Pink Pop", color: "#ff69b4", bg: "#000000" },
+  { name: "Clean Minimal", color: "#ffffff", bg: "transparent" },
+  { name: "Gold Premium", color: "#ffd700", bg: "#000000" },
+  { name: "Social Media", color: "#ffffff", bg: "#e91e63" },
+  { name: "Cinema Style", color: "#ffffff", bg: "#222222" },
 ];
 
-export default function DashboardPage() {
+export default function Dashboard() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabase(), []);
 
-  const [loading, setLoading] = useState(true);
-  const [file, setFile] = useState(null);
-  const [subtitle, setSubtitle] = useState("Your subtitles will appear here.");
+  const [user, setUser] = useState(null);
+  const [video, setVideo] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [subtitle, setSubtitle] = useState("Your subtitles will appear here");
+  const [subtitleMode, setSubtitleMode] = useState("sentence");
+
+  const [fontFamily, setFontFamily] = useState("Arial");
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState("#ffffff");
-  const [bgColor, setBgColor] = useState("transparent");
-  const [position, setPosition] = useState("bottom");
-  const [fontFamily, setFontFamily] = useState("Arial");
   const [bold, setBold] = useState(true);
   const [outline, setOutline] = useState(true);
-  const [captionMode, setCaptionMode] = useState("sentence");
+
+  const [bgMode, setBgMode] = useState("color");
+  const [bgColor, setBgColor] = useState("#000000");
+
+  const [captionX, setCaptionX] = useState(50);
+  const [captionY, setCaptionY] = useState(88);
+  const [positionMode, setPositionMode] = useState("automatic");
+
   const [fontUrl, setFontUrl] = useState("");
   const [fontName, setFontName] = useState("");
 
-  const previewUrl = useMemo(
-    () => file ? URL.createObjectURL(file) : "",
-    [file]
-  );
+  const previewRef = useRef(null);
+  const fontInputRef = useRef(null);
+  const draggingRef = useRef(false);
 
   useEffect(() => {
-    let active = true;
+    const supabase = getSupabase();
 
     supabase.auth.getUser().then(({ data, error }) => {
-      if (!active) return;
-      if (error || !data.user) router.replace("/login");
-      else setLoading(false);
-    });
+      if (error || !data.user) {
+        router.push("/login");
+        return;
+      }
 
-    return () => { active = false; };
-  }, [supabase, router]);
+      setUser(data.user);
+    });
+  }, [router]);
 
   useEffect(() => {
     return () => {
@@ -65,437 +72,628 @@ export default function DashboardPage() {
     };
   }, [fontUrl]);
 
-  function handleFile(event) {
-    const selected = event.target.files?.[0];
-    if (!selected) return;
+  async function handleLogout() {
+    const supabase = getSupabase();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
-    if (!selected.type.startsWith("video/")) {
-      alert("Please select a video file.");
-      return;
-    }
+  function handleVideoUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    setFile(selected);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+
+    setVideo(file);
+    setPreviewUrl(URL.createObjectURL(file));
   }
 
   function handleFontUpload(event) {
-    const selected = event.target.files?.[0];
-    if (!selected) return;
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-    const allowed = /\.(ttf|otf|woff|woff2)$/i.test(selected.name);
+    const validExtensions = [".ttf", ".otf", ".woff", ".woff2"];
+    const extension = file.name
+      .slice(file.name.lastIndexOf("."))
+      .toLowerCase();
 
-    if (!allowed) {
+    if (!validExtensions.includes(extension)) {
       alert("Please upload a TTF, OTF, WOFF or WOFF2 font file.");
       return;
     }
 
-    const url = URL.createObjectURL(selected);
+    if (fontUrl) URL.revokeObjectURL(fontUrl);
+
+    const url = URL.createObjectURL(file);
     setFontUrl(url);
-    setFontName(selected.name);
+    setFontName(file.name);
     setFontFamily("UserUploadedFont");
   }
 
   function applyTemplate(template) {
     setFontColor(template.color);
-    setBgColor(template.bg);
-    setFontSize(template.size);
-    setBold(template.bold);
-    setOutline(template.outline);
-    setPosition(template.position);
-    setFontFamily("Arial");
+
+    if (template.bg === "transparent") {
+      setBgMode("none");
+    } else {
+      setBgMode("color");
+      setBgColor(template.bg);
+    }
+
+    setBold(true);
+    setOutline(true);
   }
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.replace("/login");
+  function handlePointerDown(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    draggingRef.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setPositionMode("manual");
   }
 
-  if (loading) {
+  function handlePointerMove(event) {
+    if (!draggingRef.current || !previewRef.current) return;
+
+    const rect = previewRef.current.getBoundingClientRect();
+
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    setCaptionX(Math.min(95, Math.max(5, x)));
+    setCaptionY(Math.min(95, Math.max(5, y)));
+  }
+
+  function handlePointerUp() {
+    draggingRef.current = false;
+  }
+
+  function resetPosition() {
+    setCaptionX(50);
+    setCaptionY(88);
+    setPositionMode("automatic");
+  }
+
+  const captionBackground =
+    bgMode === "none" ? "transparent" : bgColor;
+
+  if (!user) {
     return (
-      <main style={{ padding: 40, color: "white", background: "#090d18", minHeight: "100vh" }}>
-        Loading...
+      <main style={styles.loading}>
+        Loading your workspace...
       </main>
     );
   }
 
-  const buttonStyle = {
-    padding: "12px 15px",
-    background: "#27334d",
-    color: "white",
-    border: "1px solid #43516c",
-    borderRadius: 8,
-    cursor: "pointer"
-  };
-
-  const labelStyle = {
-    display: "block",
-    color: "#b8c4da",
-    marginBottom: 9,
-    fontSize: 14
-  };
-
   return (
-    <main style={{
-      minHeight: "100vh",
-      background: "#090d18",
-      color: "white",
-      padding: "24px 16px",
-      fontFamily: "Arial, sans-serif"
-    }}>
-      {fontUrl && (
-        <style>
-          {`@font-face {
-            font-family: "UserUploadedFont";
-            src: url("${fontUrl}");
-          }`}
-        </style>
-      )}
+    <main style={styles.page}>
+      <header style={styles.header}>
+        <div>
+          <h1 style={styles.logo}>CAPKUP AI</h1>
+          <p style={styles.smallText}>Video Subtitle Studio</p>
+        </div>
 
-      <div style={{ maxWidth: 1100, margin: "auto" }}>
-        <header style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 30
-        }}>
-          <h2 style={{ color: "#8b9cff" }}>CAPKUP AI</h2>
-          <button style={buttonStyle} onClick={handleLogout}>Logout</button>
-        </header>
+        <button style={styles.logout} onClick={handleLogout}>
+          Logout
+        </button>
+      </header>
 
-        <h1 style={{ fontSize: 30 }}>Subtitle Editor</h1>
-        <p style={{ color: "#aab4c8" }}>
-          Upload your video and customize your captions.
+      <section style={styles.container}>
+        <h2 style={styles.heading}>Your Subtitle Editor</h2>
+        <p style={styles.description}>
+          Upload your video and customize your subtitle appearance.
         </p>
 
-        <section style={{
-          background: "#141c2e",
-          padding: 22,
-          borderRadius: 14,
-          marginTop: 24
-        }}>
-          <h3>1. Upload Video</h3>
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>1. Upload Video</h3>
 
-          <label style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 12,
-            marginTop: 18,
-            padding: "35px 15px",
-            minHeight: 170,
-            border: "2px dashed #6478ff",
-            borderRadius: 14,
-            background: "#1b2740",
-            cursor: "pointer",
-            textAlign: "center"
-          }}>
-            <span style={{ fontSize: 42 }}>📁</span>
-            <strong style={{ fontSize: 19 }}>Choose Your Video</strong>
-            <span style={{ color: "#aab4c8", fontSize: 13 }}>
-              Select MP4, MOV, WebM and other video files
-            </span>
-            <span style={{
-              background: "#6478ff",
-              padding: "13px 30px",
-              borderRadius: 9,
-              fontWeight: "bold"
-            }}>
-              Browse Videos
-            </span>
+          <label style={styles.uploadBox}>
+            <span style={styles.uploadIcon}>＋</span>
+            <span>Choose Video</span>
+            <small>MP4, MOV and other video formats</small>
             <input
               type="file"
               accept="video/*"
-              onChange={handleFile}
+              onChange={handleVideoUpload}
               style={{ display: "none" }}
             />
           </label>
 
-          {file && (
-            <p style={{ color: "#aab4c8", overflowWrap: "anywhere" }}>
-              Selected: {file.name}
+          {video && (
+            <p style={styles.fileName}>
+              Selected: {video.name}
             </p>
           )}
-        </section>
+        </div>
 
-        <section style={{
-          background: "#141c2e",
-          padding: 20,
-          borderRadius: 14,
-          marginTop: 20
-        }}>
-          <h3>2. Live Video Preview</h3>
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>2. Video Preview</h3>
 
-          <div style={{
-            position: "relative",
-            background: "#000",
-            borderRadius: 12,
-            overflow: "hidden",
-            marginTop: 15,
-            minHeight: 220
-          }}>
-            {file ? (
+          <div ref={previewRef} style={styles.preview}>
+            {previewUrl ? (
               <video
                 src={previewUrl}
                 controls
-                style={{ width: "100%", display: "block", maxHeight: 550 }}
+                style={styles.video}
               />
             ) : (
-              <div style={{
-                minHeight: 250,
-                display: "grid",
-                placeItems: "center",
-                color: "#8793aa"
-              }}>
-                Upload a video to see preview
+              <div style={styles.emptyPreview}>
+                Your video preview will appear here
               </div>
             )}
 
-            {file && (
-              <div style={{
-                position: "absolute",
-                left: "5%",
-                right: "5%",
-                textAlign: "center",
-                pointerEvents: "none",
-                ...(position === "top"
-                  ? { top: 25 }
-                  : position === "middle"
-                  ? { top: "45%" }
-                  : { bottom: 55 })
-              }}>
-                <span style={{
-                  display: "inline-block",
+            {previewUrl && (
+              <div
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                style={{
+                  ...styles.captionOverlay,
+                  left: `${captionX}%`,
+                  top: `${captionY}%`,
                   color: fontColor,
-                  background: bgColor,
-                  padding: "7px 12px",
-                  borderRadius: 6,
+                  fontFamily:
+                    fontFamily === "UserUploadedFont"
+                      ? "UserUploadedFont"
+                      : fontFamily,
                   fontSize: `${fontSize}px`,
-                  fontFamily,
                   fontWeight: bold ? "bold" : "normal",
+                  background: captionBackground,
                   textShadow: outline
-                    ? "2px 2px 2px black, -2px -2px 2px black"
+                    ? "2px 2px 2px #000, -2px -2px 2px #000"
                     : "none",
-                  overflowWrap: "anywhere"
-                }}>
-                  {captionMode === "word"
-                    ? subtitle.split(" ").map((word, index) => (
-                        <span key={index} style={{ marginRight: 7 }}>
-                          {word}
-                        </span>
-                      ))
-                    : subtitle}
-                </span>
+                  borderRadius: bgMode === "none" ? "0" : "6px",
+                }}
+              >
+                {subtitle || "Your subtitles"}
               </div>
             )}
           </div>
-        </section>
 
-        <section style={{
-          background: "#141c2e",
-          padding: 20,
-          borderRadius: 14,
-          marginTop: 20
-        }}>
-          <h3>3. Subtitle Text</h3>
+          <p style={styles.hint}>
+            Drag the subtitle with your finger or mouse to move it anywhere
+            inside the video.
+          </p>
+
+          <div style={styles.positionRow}>
+            <span style={styles.positionText}>
+              Position: {positionMode === "automatic" ? "Automatic" : "Custom"}
+            </span>
+
+            <button
+              style={styles.resetButton}
+              onClick={resetPosition}
+            >
+              Reset Automatic Position
+            </button>
+          </div>
+        </div>
+
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>3. Subtitle Text</h3>
+
           <textarea
             value={subtitle}
             onChange={(e) => setSubtitle(e.target.value)}
-            rows={3}
-            style={{
-              width: "100%",
-              padding: 12,
-              borderRadius: 8,
-              background: "#090d18",
-              color: "white",
-              border: "1px solid #43516c",
-              fontSize: 16,
-              marginTop: 12
-            }}
+            placeholder="Enter your subtitle text..."
+            style={styles.textarea}
           />
 
-          <label style={{ ...labelStyle, marginTop: 18 }}>Caption Mode</label>
+          <label style={styles.label}>Subtitle Display Mode</label>
           <select
-            value={captionMode}
-            onChange={(e) => setCaptionMode(e.target.value)}
-            style={{ ...buttonStyle, width: "100%" }}
+            value={subtitleMode}
+            onChange={(e) => setSubtitleMode(e.target.value)}
+            style={styles.select}
           >
-            <option value="sentence">Normal Sentence</option>
-            <option value="word">Word by Word Preview</option>
+            <option value="sentence">Sentence Subtitles</option>
+            <option value="word">Word-by-Word Preview</option>
           </select>
-        </section>
+        </div>
 
-        <section style={{
-          background: "#141c2e",
-          padding: 20,
-          borderRadius: 14,
-          marginTop: 20
-        }}>
-          <h3>4. Caption Templates</h3>
-          <p style={{ color: "#aab4c8", fontSize: 13 }}>
-            Choose any template to apply its caption style.
-          </p>
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>4. Font Settings</h3>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(135px, 1fr))",
-            gap: 12,
-            marginTop: 18
-          }}>
+          <label style={styles.label}>Font Family</label>
+          <select
+            value={fontFamily}
+            onChange={(e) => setFontFamily(e.target.value)}
+            style={styles.select}
+          >
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Impact">Impact</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+            {fontUrl && (
+              <option value="UserUploadedFont">
+                {fontName || "Uploaded Font"}
+              </option>
+            )}
+          </select>
+
+          {fontUrl && (
+            <style>
+              {`@font-face {
+                font-family: "UserUploadedFont";
+                src: url("${fontUrl}");
+              }`}
+            </style>
+          )}
+
+          <input
+            ref={fontInputRef}
+            type="file"
+            accept=".ttf,.otf,.woff,.woff2"
+            onChange={handleFontUpload}
+            style={{ display: "none" }}
+          />
+
+          <button
+            style={styles.fontUploadButton}
+            onClick={() => fontInputRef.current?.click()}
+          >
+            <span style={styles.fontButtonIcon}>＋</span>
+            <span>
+              <strong>Upload Custom Font</strong>
+              <small>TTF, OTF, WOFF and WOFF2 supported</small>
+            </span>
+          </button>
+
+          {fontName && (
+            <p style={styles.fileName}>
+              Uploaded font: {fontName}
+            </p>
+          )}
+
+          <label style={styles.label}>
+            Font Size: {fontSize}px
+          </label>
+          <input
+            type="range"
+            min="12"
+            max="60"
+            value={fontSize}
+            onChange={(e) => setFontSize(Number(e.target.value))}
+            style={styles.range}
+          />
+
+          <label style={styles.label}>Font Color</label>
+          <input
+            type="color"
+            value={fontColor}
+            onChange={(e) => setFontColor(e.target.value)}
+            style={styles.colorInput}
+          />
+
+          <label style={styles.checkLabel}>
+            <input
+              type="checkbox"
+              checked={bold}
+              onChange={(e) => setBold(e.target.checked)}
+            />
+            Bold Text
+          </label>
+
+          <label style={styles.checkLabel}>
+            <input
+              type="checkbox"
+              checked={outline}
+              onChange={(e) => setOutline(e.target.checked)}
+            />
+            Text Outline
+          </label>
+        </div>
+
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>5. Background Color</h3>
+
+          <label style={styles.label}>Background Option</label>
+          <select
+            value={bgMode}
+            onChange={(e) => setBgMode(e.target.value)}
+            style={styles.select}
+          >
+            <option value="color">Choose Background Color</option>
+            <option value="none">No Background</option>
+          </select>
+
+          {bgMode === "color" && (
+            <>
+              <label style={styles.label}>Select Color</label>
+              <input
+                type="color"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+                style={styles.colorInput}
+              />
+            </>
+          )}
+        </div>
+
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>6. Caption Templates</h3>
+
+          <div style={styles.templateGrid}>
             {templates.map((template) => (
               <button
                 key={template.name}
                 onClick={() => applyTemplate(template)}
                 style={{
-                  background: "#090d18",
-                  border: "1px solid #43516c",
-                  borderRadius: 10,
-                  padding: "18px 8px",
+                  ...styles.templateButton,
                   color: template.color,
-                  fontWeight: "bold",
-                  fontSize: 14,
-                  cursor: "pointer",
-                  textShadow: template.outline ? "1px 1px 2px black" : "none"
+                  background:
+                    template.bg === "transparent"
+                      ? "#333"
+                      : template.bg,
                 }}
               >
                 {template.name}
               </button>
             ))}
           </div>
-        </section>
+        </div>
 
-        <section style={{
-          background: "#141c2e",
-          padding: 20,
-          borderRadius: 14,
-          marginTop: 20
-        }}>
-          <h3>5. Customize Font</h3>
+        <div style={styles.notice}>
+          Automatic transcription and MP4 export are still under development.
+          Your current subtitle settings are shown in the video preview only.
+        </div>
+      </section>
 
-          <label style={labelStyle}>Font Style</label>
-          <select
-            value={fontFamily}
-            onChange={(e) => setFontFamily(e.target.value)}
-            style={{ ...buttonStyle, width: "100%" }}
-          >
-            <option value="Arial">Arial</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Tahoma">Tahoma</option>
-            <option value="Impact">Impact</option>
-            {fontUrl && <option value="UserUploadedFont">My Uploaded Font</option>}
-          </select>
-
-          <div style={{ marginTop: 20 }}>
-            <label style={labelStyle}>Upload Your Own Font</label>
-            <input
-              type="file"
-              accept=".ttf,.otf,.woff,.woff2"
-              onChange={handleFontUpload}
-              style={{ color: "white", width: "100%" }}
-            />
-            {fontName && (
-              <p style={{ color: "#8b9cff", fontSize: 13 }}>
-                Uploaded: {fontName}
-              </p>
-            )}
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <label style={labelStyle}>Font Size: {fontSize}px</label>
-            <input
-              type="range"
-              min="14"
-              max="60"
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 18,
-            marginTop: 20
-          }}>
-            <div>
-              <label style={labelStyle}>Text Colour</label>
-              <input
-                type="color"
-                value={fontColor}
-                onChange={(e) => setFontColor(e.target.value)}
-                style={{ width: "100%", height: 42 }}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>Background Colour</label>
-              <input
-                type="color"
-                value={bgColor === "transparent" ? "#000000" : bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                style={{ width: "100%", height: 42 }}
-              />
-            </div>
-          </div>
-
-          <button
-            style={{
-              ...buttonStyle,
-              marginTop: 14,
-              background: bgColor === "transparent" ? "#6478ff" : "#27334d"
-            }}
-            onClick={() => setBgColor("transparent")}
-          >
-            No Background
-          </button>
-
-          <div style={{ marginTop: 20 }}>
-            <label style={labelStyle}>Subtitle Position</label>
-            <select
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              style={{ ...buttonStyle, width: "100%" }}
-            >
-              <option value="top">Top</option>
-              <option value="middle">Middle</option>
-              <option value="bottom">Bottom</option>
-            </select>
-          </div>
-
-          <div style={{
-            display: "flex",
-            gap: 25,
-            flexWrap: "wrap",
-            marginTop: 22
-          }}>
-            <label>
-              <input
-                type="checkbox"
-                checked={bold}
-                onChange={(e) => setBold(e.target.checked)}
-              /> Bold
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={outline}
-                onChange={(e) => setOutline(e.target.checked)}
-              /> Text Outline
-            </label>
-          </div>
-        </section>
-
-        <p style={{
-          color: "#8793aa",
-          textAlign: "center",
-          marginTop: 25,
-          fontSize: 13
-        }}>
-          Automatic transcription and MP4 export are coming in the next stage.
-        </p>
-      </div>
+      <footer style={styles.footer}>
+        CAPKUP AI © 2026
+      </footer>
     </main>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#0b1020",
+    color: "#ffffff",
+    fontFamily: "Arial, sans-serif",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "18px 5%",
+    borderBottom: "1px solid #263047",
+  },
+  logo: {
+    margin: 0,
+    fontSize: "25px",
+    color: "#65a8ff",
+  },
+  smallText: {
+    margin: "5px 0 0",
+    color: "#9ca9c0",
+    fontSize: "12px",
+  },
+  logout: {
+    background: "#263047",
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 17px",
+    cursor: "pointer",
+  },
+  container: {
+    width: "90%",
+    maxWidth: "850px",
+    margin: "30px auto",
+  },
+  heading: {
+    fontSize: "27px",
+    marginBottom: "8px",
+  },
+  description: {
+    color: "#9ca9c0",
+    marginBottom: "25px",
+  },
+  panel: {
+    background: "#151e32",
+    border: "1px solid #293650",
+    borderRadius: "13px",
+    padding: "20px",
+    marginBottom: "20px",
+  },
+  sectionTitle: {
+    fontSize: "18px",
+    marginTop: 0,
+    marginBottom: "18px",
+  },
+  uploadBox: {
+    minHeight: "125px",
+    border: "2px dashed #45628d",
+    borderRadius: "12px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+    color: "#8bbcff",
+    cursor: "pointer",
+  },
+  uploadIcon: {
+    fontSize: "30px",
+  },
+  fileName: {
+    color: "#8bbcff",
+    fontSize: "13px",
+    overflowWrap: "anywhere",
+  },
+  preview: {
+    position: "relative",
+    width: "100%",
+    background: "#000",
+    overflow: "hidden",
+    borderRadius: "10px",
+    lineHeight: 0,
+    touchAction: "pan-y",
+  },
+  video: {
+    display: "block",
+    width: "100%",
+    maxHeight: "550px",
+    objectFit: "contain",
+  },
+  emptyPreview: {
+    minHeight: "230px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#9ca9c0",
+    lineHeight: 1.5,
+    textAlign: "center",
+  },
+  captionOverlay: {
+    position: "absolute",
+    zIndex: 5,
+    transform: "translate(-50%, -50%)",
+    padding: "7px 12px",
+    maxWidth: "90%",
+    width: "max-content",
+    textAlign: "center",
+    lineHeight: 1.3,
+    overflowWrap: "anywhere",
+    cursor: "grab",
+    userSelect: "none",
+    touchAction: "none",
+    pointerEvents: "auto",
+  },
+  hint: {
+    color: "#9ca9c0",
+    fontSize: "12px",
+    lineHeight: 1.5,
+    marginTop: "12px",
+  },
+  positionRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "10px",
+    marginTop: "12px",
+  },
+  positionText: {
+    color: "#8bbcff",
+    fontSize: "13px",
+  },
+  resetButton: {
+    background: "#263e63",
+    color: "#fff",
+    border: "none",
+    borderRadius: "7px",
+    padding: "9px 12px",
+    cursor: "pointer",
+  },
+  textarea: {
+    width: "100%",
+    minHeight: "90px",
+    resize: "vertical",
+    boxSizing: "border-box",
+    background: "#0b1020",
+    color: "#fff",
+    border: "1px solid #354563",
+    borderRadius: "8px",
+    padding: "12px",
+    fontSize: "15px",
+  },
+  label: {
+    display: "block",
+    marginTop: "17px",
+    marginBottom: "8px",
+    color: "#c5d0e2",
+    fontSize: "14px",
+  },
+  select: {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "12px",
+    borderRadius: "8px",
+    border: "1px solid #354563",
+    background: "#0b1020",
+    color: "#fff",
+    fontSize: "14px",
+  },
+  fontUploadButton: {
+    width: "100%",
+    minHeight: "75px",
+    marginTop: "16px",
+    padding: "13px 16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "13px",
+    border: "1px solid #5289d4",
+    borderRadius: "11px",
+    background: "#203b62",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "15px",
+    textAlign: "left",
+  },
+  fontButtonIcon: {
+    fontSize: "28px",
+    color: "#8bbcff",
+  },
+  range: {
+    width: "100%",
+    accentColor: "#65a8ff",
+  },
+  colorInput: {
+    width: "65px",
+    height: "42px",
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+  },
+  checkLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: "9px",
+    marginTop: "14px",
+    color: "#c5d0e2",
+    fontSize: "14px",
+  },
+  templateGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+    gap: "10px",
+  },
+  templateButton: {
+    minHeight: "55px",
+    border: "1px solid #52617b",
+    borderRadius: "8px",
+    padding: "10px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "12px",
+  },
+  notice: {
+    background: "#202b42",
+    border: "1px solid #405475",
+    borderRadius: "10px",
+    padding: "15px",
+    color: "#c5d0e2",
+    fontSize: "13px",
+    lineHeight: 1.6,
+  },
+  footer: {
+    textAlign: "center",
+    color: "#75839b",
+    padding: "25px",
+    fontSize: "12px",
+  },
+  loading: {
+    minHeight: "100vh",
+    display: "grid",
+    placeItems: "center",
+    background: "#0b1020",
+    color: "#fff",
+  },
+};
