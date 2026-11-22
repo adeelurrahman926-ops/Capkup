@@ -59,7 +59,7 @@ export default function VideoExport({
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
-
+const [debugLog, setDebugLog] = useState("");
   async function exportVideo() {
     if (!videoFile) {
       setError("Please upload a video first.");
