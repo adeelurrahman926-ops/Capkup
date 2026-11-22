@@ -453,7 +453,18 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
+<div style={styles.panel}>
+  <h3 style={styles.sectionTitle}>7. Export Video</h3>
 
+  <VideoExport
+    videoFile={video}
+    subtitleChunks={subtitleChunks}
+    fontSize={fontSize}
+    fontColor={fontColor}
+    bold={bold}
+    outline={outline}
+  />
+</div>
         <div style={styles.notice}>
           Automatic transcription and MP4 export are still under development.
           Your current subtitle settings are shown in the video preview only.
