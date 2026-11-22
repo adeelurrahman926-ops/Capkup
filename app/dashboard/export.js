@@ -109,7 +109,7 @@ export default function VideoExport({
       );
 
       setProgress(25);
-
+console.log("Starting FFmpeg video processing...");
       const color = hexToAss(fontColor);
 
       const style =
