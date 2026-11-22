@@ -206,7 +206,14 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-
+        <Transcription
+          videoFile={video}
+          onTranscriptionComplete={(data) => {
+            setSubtitle(data.text);
+            setSubtitleMode("sentence");
+          }}
+        />
+          
         <div style={styles.panel}>
           <h3 style={styles.sectionTitle}>2. Video Preview</h3>
 
