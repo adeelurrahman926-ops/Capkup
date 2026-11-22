@@ -92,7 +92,7 @@ export default function Dashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validExtensions = [".ttf", ".otf", ".woff", ".woff2"];
+    const validExtensions =  [".ttf", ".otf", ".woff", ".woff2"];
     const extension = file.name
       .slice(file.name.lastIndexOf("."))
       .toLowerCase();
