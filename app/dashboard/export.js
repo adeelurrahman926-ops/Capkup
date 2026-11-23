@@ -12,6 +12,7 @@ export default function VideoExport({
   fontColor = "#ffffff",
   bold = true,
   outline = true,
+  subtitleAnimation = "none",
 }) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -38,6 +39,7 @@ export default function VideoExport({
     let canvasStream;
     let sourceStream;
     let animationId;
+    let updateProgress;
 
     try {
       const validChunks = subtitleChunks.filter(
@@ -93,18 +95,18 @@ export default function VideoExport({
 
       sourceStream = video.captureStream();
 
-const audioContext = new AudioContext();
-const audioSource = audioContext.createMediaElementSource(video);
-const audioDestination = audioContext.createMediaStreamDestination();
+      const audioContext = new AudioContext();
+      const audioSource = audioContext.createMediaElementSource(video);
+      const audioDestination = audioContext.createMediaStreamDestination();
 
-audioSource.connect(audioDestination);
+      audioSource.connect(audioDestination);
 
-const audioTracks = audioDestination.stream.getAudioTracks();
+      const audioTracks = audioDestination.stream.getAudioTracks();
 
-const finalStream = new MediaStream([
-  ...canvasStream.getVideoTracks(),
-  ...audioTracks,
-]);
+      const finalStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...audioTracks,
+      ]);
 
       let mimeType = "video/webm";
 
@@ -134,8 +136,8 @@ const finalStream = new MediaStream([
 
       function drawFrame() {
         if (video.readyState >= 2) {
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-}
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
 
         const currentChunk = validChunks.find(
           (item) =>
@@ -144,49 +146,139 @@ const finalStream = new MediaStream([
         );
 
         if (currentChunk) {
-          const text = currentChunk.text.trim();
+          const originalText = currentChunk.text.trim();
 
-          ctx.save();
+          const elapsed = Math.max(
+            0,
+            video.currentTime - currentChunk.start
+          );
 
-          ctx.font =
-            `${bold ? "bold" : "normal"} ${scaledFont}px Arial`;
+          const chunkDuration = Math.max(
+            0.08,
+            currentChunk.end - currentChunk.start
+          );
 
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
+          const animationDuration = Math.min(
+            0.35,
+            chunkDuration
+          );
 
-          const x = canvas.width / 2;
-          const y = canvas.height * 0.88;
+          const animationProgress = Math.min(
+            1,
+            elapsed / animationDuration
+          );
 
-          const maxWidth = canvas.width * 0.9;
-          let displayFont = scaledFont;
+          let alpha = 1;
+          let scale = 1;
+          let offsetY = 0;
+          let displayText = originalText;
 
-          while (
-            ctx.measureText(text).width > maxWidth &&
-            displayFont > 10
-          ) {
-            displayFont -= 2;
+          switch (subtitleAnimation) {
+            case "fadeIn":
+              alpha = animationProgress;
+              break;
+
+            case "fadeUp":
+              alpha = animationProgress;
+              offsetY =
+                (1 - animationProgress) * scaledFont * 0.8;
+              break;
+
+            case "popUp":
+              if (animationProgress < 0.7) {
+                scale =
+                  0.55 +
+                  (animationProgress / 0.7) * 0.55;
+              } else {
+                scale =
+                  1.1 -
+                  ((animationProgress - 0.7) / 0.3) * 0.1;
+              }
+
+              alpha = animationProgress;
+              break;
+
+            case "zoomIn":
+              scale = 0.4 + animationProgress * 0.6;
+              alpha = animationProgress;
+              break;
+
+            case "slideUp":
+              offsetY =
+                (1 - animationProgress) * scaledFont * 1.3;
+              alpha = animationProgress;
+              break;
+
+            case "bounce":
+              offsetY =
+                (1 - animationProgress) * scaledFont +
+                Math.sin(animationProgress * Math.PI * 2) *
+                  (1 - animationProgress) *
+                  scaledFont *
+                  0.3;
+
+              alpha = animationProgress;
+              break;
+
+            case "typewriter":
+              displayText = originalText.slice(
+                0,
+                Math.ceil(
+                  originalText.length * animationProgress
+                )
+              );
+              break;
+
+            default:
+              break;
+          }
+
+          if (displayText) {
+            ctx.save();
+
+            ctx.globalAlpha = alpha;
+
+            const x = canvas.width / 2;
+            const y = canvas.height * 0.88 + offsetY;
+
+            ctx.translate(x, y);
+            ctx.scale(scale, scale);
+
             ctx.font =
-              `${bold ? "bold" : "normal"} ${displayFont}px Arial`;
+              `${bold ? "bold" : "normal"} ${scaledFont}px Arial`;
+
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const maxWidth = canvas.width * 0.9;
+            let displayFont = scaledFont;
+
+            while (
+              ctx.measureText(displayText).width > maxWidth &&
+              displayFont > 10
+            ) {
+              displayFont -= 2;
+
+              ctx.font =
+                `${bold ? "bold" : "normal"} ${displayFont}px Arial`;
+            }
+
+            if (outline) {
+              ctx.lineJoin = "round";
+              ctx.lineWidth = Math.max(3, displayFont * 0.12);
+              ctx.strokeStyle = "#000000";
+              ctx.strokeText(displayText, 0, 0, maxWidth);
+            }
+
+            ctx.fillStyle = fontColor;
+            ctx.fillText(displayText, 0, 0, maxWidth);
+
+            ctx.restore();
           }
-
-          const textWidth = ctx.measureText(text).width;
-
-          if (outline) {
-            ctx.lineJoin = "round";
-            ctx.lineWidth = Math.max(3, displayFont * 0.12);
-            ctx.strokeStyle = "#000000";
-            ctx.strokeText(text, x, y, maxWidth);
-          }
-
-          ctx.fillStyle = fontColor;
-          ctx.fillText(text, x, y, maxWidth);
-
-          ctx.restore();
         }
 
         animationId = requestAnimationFrame(drawFrame);
       }
-
 
       setProgress(15);
 
@@ -208,10 +300,12 @@ const finalStream = new MediaStream([
 
       await video.play();
       await audioContext.resume();
+
       drawFrame();
+
       setProgress(25);
 
-      const updateProgress = setInterval(() => {
+      updateProgress = setInterval(() => {
         if (video.duration > 0) {
           const value =
             25 + (video.currentTime / video.duration) * 35;
@@ -303,6 +397,7 @@ const finalStream = new MediaStream([
 
       link.href = downloadUrl;
       link.download = "CAPKUP-AI-Subtitled.mp4";
+
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -314,6 +409,10 @@ const finalStream = new MediaStream([
       console.error("Export error:", err);
       setError(err.message || "Video export failed.");
     } finally {
+      if (updateProgress) {
+        clearInterval(updateProgress);
+      }
+
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
