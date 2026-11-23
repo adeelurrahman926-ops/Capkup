@@ -37,6 +37,14 @@ export const metadata = {
     siteName: "CAPKUP AI",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "CAPKUP AI Video Subtitle Generator",
+      },
+    ],
   },
 
   twitter: {
@@ -44,6 +52,7 @@ export const metadata = {
     title: "CAPKUP AI | AI Video Subtitle Generator",
     description:
       "Create stylish AI-powered video subtitles and export your videos as MP4.",
+    images: ["/og-image.png"],
   },
 
   robots: {
