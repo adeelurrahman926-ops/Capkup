@@ -93,12 +93,18 @@ export default function VideoExport({
 
       sourceStream = video.captureStream();
 
-      const audioTracks = sourceStream.getAudioTracks();
+const audioContext = new AudioContext();
+const audioSource = audioContext.createMediaElementSource(video);
+const audioDestination = audioContext.createMediaStreamDestination();
 
-      const finalStream = new MediaStream([
-        ...canvasStream.getVideoTracks(),
-        ...audioTracks,
-      ]);
+audioSource.connect(audioDestination);
+
+const audioTracks = audioDestination.stream.getAudioTracks();
+
+const finalStream = new MediaStream([
+  ...canvasStream.getVideoTracks(),
+  ...audioTracks,
+]);
 
       let mimeType = "video/webm";
 
@@ -201,6 +207,7 @@ export default function VideoExport({
       recorder.start(1000);
 
       await video.play();
+      await audioContext.resume();
       drawFrame();
       setProgress(25);
 
