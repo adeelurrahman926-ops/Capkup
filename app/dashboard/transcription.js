@@ -10,6 +10,7 @@ export default function Transcription({ videoFile, onTranscriptionComplete }) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
+  const [language, setLanguage] = useState("urdu");
 
   async function handleTranscription() {
     if (!videoFile) {
@@ -40,7 +41,8 @@ export default function Transcription({ videoFile, onTranscriptionComplete }) {
           } else if (info.status === "done") {
             setProgress(100);
           }
-        }
+        },
+        language
       );
 
       if (!transcription.text.trim()) {
@@ -67,8 +69,40 @@ export default function Transcription({ videoFile, onTranscriptionComplete }) {
       <h3 style={styles.heading}>AI Speech Transcription</h3>
 
       <p style={styles.description}>
-        Convert the speech in your video into subtitles automatically.
+        Select your video's spoken language to generate subtitles.
       </p>
+
+      <label style={styles.label}>
+        Choose Video Language
+      </label>
+
+      <select
+        value={language}
+        onChange={(e) => setLanguage(e.target.value)}
+        disabled={loading}
+        style={styles.select}
+      >
+        <option value="urdu">Urdu</option>
+        <option value="english">English</option>
+        <option value="hindi">Hindi</option>
+        <option value="arabic">Arabic</option>
+        <option value="spanish">Spanish</option>
+        <option value="french">French</option>
+        <option value="german">German</option>
+        <option value="portuguese">Portuguese</option>
+        <option value="russian">Russian</option>
+        <option value="chinese">Chinese</option>
+        <option value="japanese">Japanese</option>
+        <option value="korean">Korean</option>
+        <option value="turkish">Turkish</option>
+        <option value="bengali">Bengali</option>
+        <option value="punjabi">Punjabi</option>
+        <option value="persian">Persian</option>
+        <option value="indonesian">Indonesian</option>
+        <option value="italian">Italian</option>
+        <option value="dutch">Dutch</option>
+        <option value="polish">Polish</option>
+      </select>
 
       <button
         onClick={handleTranscription}
@@ -136,6 +170,24 @@ const styles = {
     color: "#9ca9c0",
     fontSize: "13px",
     lineHeight: 1.6,
+  },
+  label: {
+    display: "block",
+    marginTop: "16px",
+    marginBottom: "8px",
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
+  select: {
+    width: "100%",
+    padding: "13px",
+    border: "1px solid #394967",
+    borderRadius: "9px",
+    background: "#0b1020",
+    color: "#ffffff",
+    fontSize: "15px",
+    outline: "none",
   },
   button: {
     width: "100%",
