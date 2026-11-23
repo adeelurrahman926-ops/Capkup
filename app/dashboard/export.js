@@ -127,7 +127,9 @@ export default function VideoExport({
       const scaledFont = fontSize * fontScale;
 
       function drawFrame() {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (video.readyState >= 2) {
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+}
 
         const currentChunk = validChunks.find(
           (item) =>
@@ -179,7 +181,6 @@ export default function VideoExport({
         animationId = requestAnimationFrame(drawFrame);
       }
 
-      drawFrame();
 
       setProgress(15);
 
@@ -200,7 +201,7 @@ export default function VideoExport({
       recorder.start(1000);
 
       await video.play();
-
+      drawFrame();
       setProgress(25);
 
       const updateProgress = setInterval(() => {
