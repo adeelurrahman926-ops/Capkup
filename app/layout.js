@@ -25,6 +25,10 @@ export const metadata = {
 
   applicationName: "CAPKUP AI",
 
+  verification: {
+    google: "9Cm_udg-j5cHrXwfxRzaKf692KqBV6bAqpZ3ZAwRcSQ",
+  },
+
   openGraph: {
     title: "CAPKUP AI | Free AI Video Subtitle Generator",
     description:
