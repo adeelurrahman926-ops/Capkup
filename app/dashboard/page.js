@@ -289,10 +289,23 @@ export default function Dashboard() {
         }
       `}</style>
 
+      {/* PROFESSIONAL HEADER */}
+
       <header style={styles.header}>
-        <div>
-          <h1 style={styles.logo}>CAPKUP AI</h1>
-          <p style={styles.smallText}>Video Subtitle Studio</p>
+        <div style={styles.brandContainer}>
+          <div style={styles.brandIcon}>
+            C
+          </div>
+
+          <div>
+            <h1 style={styles.logo}>
+              CAPKUP <span style={{ color: "#65a8ff" }}>AI</span>
+            </h1>
+
+            <p style={styles.smallText}>
+              VIDEO SUBTITLE STUDIO
+            </p>
+          </div>
         </div>
 
         <button style={styles.logout} onClick={handleLogout}>
@@ -621,8 +634,22 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* PROFESSIONAL FOOTER */}
+
       <footer style={styles.footer}>
-        CAPKUP AI © 2026
+        <div style={styles.footerBrand}>
+          CAPKUP <span style={{ color: "#65a8ff" }}>AI</span>
+        </div>
+
+        <p style={styles.footerTagline}>
+          Create. Customize. Captivate.
+        </p>
+
+        <div style={styles.footerDivider}></div>
+
+        <p style={styles.footerCopyright}>
+          © 2026 CAPKUP AI. All rights reserved.
+        </p>
       </footer>
     </main>
   );
@@ -639,26 +666,52 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "18px 5%",
+    padding: "16px 5%",
     borderBottom: "1px solid #263047",
+    background: "#10182a",
+    position: "sticky",
+    top: 0,
+    zIndex: 20,
+  },
+  brandContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+  },
+  brandIcon: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "13px",
+    background: "linear-gradient(135deg, #6c45ff, #29a8ff)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "25px",
+    fontWeight: "900",
+    color: "#ffffff",
+    boxShadow: "0 4px 18px rgba(108,69,255,0.35)",
   },
   logo: {
     margin: 0,
-    fontSize: "25px",
-    color: "#65a8ff",
+    fontSize: "24px",
+    fontWeight: "900",
+    letterSpacing: "1px",
+    color: "#ffffff",
   },
   smallText: {
-    margin: "5px 0 0",
+    margin: "4px 0 0",
     color: "#9ca9c0",
-    fontSize: "12px",
+    fontSize: "10px",
+    letterSpacing: "2px",
   },
   logout: {
     background: "#263047",
     color: "#fff",
-    border: "none",
+    border: "1px solid #405475",
     borderRadius: "8px",
     padding: "10px 17px",
     cursor: "pointer",
+    fontWeight: "bold",
   },
   container: {
     width: "90%",
@@ -865,9 +918,33 @@ const styles = {
   },
   footer: {
     textAlign: "center",
+    borderTop: "1px solid #263047",
+    marginTop: "40px",
+    padding: "30px 15px",
+    background: "#10182a",
+  },
+  footerBrand: {
+    fontSize: "22px",
+    fontWeight: "900",
+    letterSpacing: "1px",
+    color: "#ffffff",
+  },
+  footerTagline: {
+    color: "#9ca9c0",
+    fontSize: "13px",
+    margin: "8px 0 18px",
+  },
+  footerDivider: {
+    width: "55px",
+    height: "3px",
+    background: "linear-gradient(90deg, #6c45ff, #29a8ff)",
+    borderRadius: "5px",
+    margin: "0 auto 18px",
+  },
+  footerCopyright: {
     color: "#75839b",
-    padding: "25px",
     fontSize: "12px",
+    margin: 0,
   },
   loading: {
     minHeight: "100vh",
