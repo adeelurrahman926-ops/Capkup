@@ -10,7 +10,7 @@ export default function Transcription({ videoFile, onTranscriptionComplete }) {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
-  const [language, setLanguage] = useState("urdu");
+  const [language, setLanguage] = useState("auto");
 
   async function handleTranscription() {
     if (!videoFile) {
@@ -82,6 +82,7 @@ export default function Transcription({ videoFile, onTranscriptionComplete }) {
         disabled={loading}
         style={styles.select}
       >
+        <option value="auto">Auto Detect</option>
         <option value="urdu">Urdu</option>
         <option value="english">English</option>
         <option value="hindi">Hindi</option>
