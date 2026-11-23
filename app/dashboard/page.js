@@ -617,7 +617,7 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.notice}>
-          Your subtitle settings and animation can be previewed before export.
+          Create professional subtitles with CAPKUP AI. Customize, animate and export your videos in MP4.
         </div>
       </section>
 
