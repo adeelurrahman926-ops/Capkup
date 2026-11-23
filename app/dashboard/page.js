@@ -1,4 +1,4 @@
- 
+
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase";
 import Transcription from "./transcription";
 import VideoExport from "./export";
+
 const templates = [
   { name: "Classic White", color: "#ffffff", bg: "#000000" },
   { name: "Yellow Highlight", color: "#ffff00", bg: "#000000" },
@@ -19,6 +20,17 @@ const templates = [
   { name: "Cinema Style", color: "#ffffff", bg: "#222222" },
 ];
 
+const animationOptions = [
+  { value: "none", label: "None" },
+  { value: "fadeIn", label: "Fade In" },
+  { value: "fadeUp", label: "Fade Up" },
+  { value: "popUp", label: "Pop Up" },
+  { value: "zoomIn", label: "Zoom In" },
+  { value: "slideUp", label: "Slide Up" },
+  { value: "bounce", label: "Bounce" },
+  { value: "typewriter", label: "Typewriter" },
+];
+
 export default function Dashboard() {
   const router = useRouter();
 
@@ -29,6 +41,7 @@ export default function Dashboard() {
   const [subtitleMode, setSubtitleMode] = useState("sentence");
   const [subtitleChunks, setSubtitleChunks] = useState([]);
   const [currentTime, setCurrentTime] = useState(0);
+
   const [fontFamily, setFontFamily] = useState("Arial");
   const [fontSize, setFontSize] = useState(28);
   const [fontColor, setFontColor] = useState("#ffffff");
@@ -44,6 +57,8 @@ export default function Dashboard() {
 
   const [fontUrl, setFontUrl] = useState("");
   const [fontName, setFontName] = useState("");
+
+  const [subtitleAnimation, setSubtitleAnimation] = useState("none");
 
   const previewRef = useRef(null);
   const fontInputRef = useRef(null);
@@ -94,7 +109,8 @@ export default function Dashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validExtensions =  [".ttf", ".otf", ".woff", ".woff2"];
+    const validExtensions = [".ttf", ".otf", ".woff", ".woff2"];
+
     const extension = file.name
       .slice(file.name.lastIndexOf("."))
       .toLowerCase();
@@ -107,6 +123,7 @@ export default function Dashboard() {
     if (fontUrl) URL.revokeObjectURL(fontUrl);
 
     const url = URL.createObjectURL(file);
+
     setFontUrl(url);
     setFontName(file.name);
     setFontFamily("UserUploadedFont");
@@ -160,6 +177,26 @@ export default function Dashboard() {
   const captionBackground =
     bgMode === "none" ? "transparent" : bgColor;
 
+  const activeChunk = subtitleChunks.find(
+    (chunk) =>
+      currentTime >= chunk.start &&
+      currentTime <= chunk.end
+  );
+
+  const displayedSubtitle =
+    subtitleChunks.length > 0
+      ? activeChunk?.text || ""
+      : subtitle || "Your subtitles";
+
+  const animationKey = activeChunk
+    ? `${activeChunk.start}-${activeChunk.end}-${activeChunk.text}`
+    : displayedSubtitle;
+
+  const previewAnimation =
+    subtitleAnimation === "none"
+      ? "none"
+      : `${subtitleAnimation} 0.4s ease-out both`;
+
   if (!user) {
     return (
       <main style={styles.loading}>
@@ -170,6 +207,88 @@ export default function Dashboard() {
 
   return (
     <main style={styles.page}>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes fadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes popUp {
+          0% {
+            opacity: 0;
+            transform: scale(0.5);
+          }
+          70% {
+            transform: scale(1.12);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes zoomIn {
+          from {
+            opacity: 0;
+            transform: scale(0.2);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(35px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes bounce {
+          0% {
+            opacity: 0;
+            transform: translateY(-25px);
+          }
+          50% {
+            opacity: 1;
+            transform: translateY(8px);
+          }
+          70% {
+            transform: translateY(-5px);
+          }
+          100% {
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes typewriter {
+          from {
+            opacity: 0;
+            clip-path: inset(0 100% 0 0);
+          }
+          to {
+            opacity: 1;
+            clip-path: inset(0 0 0 0);
+          }
+        }
+      `}</style>
+
       <header style={styles.header}>
         <div>
           <h1 style={styles.logo}>CAPKUP AI</h1>
@@ -183,6 +302,7 @@ export default function Dashboard() {
 
       <section style={styles.container}>
         <h2 style={styles.heading}>Your Subtitle Editor</h2>
+
         <p style={styles.description}>
           Upload your video and customize your subtitle appearance.
         </p>
@@ -194,6 +314,7 @@ export default function Dashboard() {
             <span style={styles.uploadIcon}>＋</span>
             <span>Choose Video</span>
             <small>MP4, MOV and other video formats</small>
+
             <input
               type="file"
               accept="video/*"
@@ -208,18 +329,20 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-         
+
         <div style={styles.panel}>
           <h3 style={styles.sectionTitle}>2. Video Preview</h3>
 
           <div ref={previewRef} style={styles.preview}>
             {previewUrl ? (
               <video
-  src={previewUrl}
-  controls
-  onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)}
-  style={styles.video}
-/>
+                src={previewUrl}
+                controls
+                onTimeUpdate={(e) =>
+                  setCurrentTime(e.target.currentTime)
+                }
+                style={styles.video}
+              />
             ) : (
               <div style={styles.emptyPreview}>
                 Your video preview will appear here
@@ -228,6 +351,7 @@ export default function Dashboard() {
 
             {previewUrl && (
               <div
+                key={animationKey}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
@@ -248,15 +372,10 @@ export default function Dashboard() {
                     ? "2px 2px 2px #000, -2px -2px 2px #000"
                     : "none",
                   borderRadius: bgMode === "none" ? "0" : "6px",
+                  animation: previewAnimation,
                 }}
               >
-                {subtitleChunks.length > 0
-  ? subtitleChunks.find(
-      (chunk) =>
-        currentTime >= chunk.start &&
-        currentTime <= chunk.end
-    )?.text || ""
-  : subtitle || "Your subtitles"}
+                {displayedSubtitle}
               </div>
             )}
           </div>
@@ -265,16 +384,16 @@ export default function Dashboard() {
             Drag the subtitle with your finger or mouse to move it anywhere
             inside the video.
           </p>
-             
-        <Transcription
-          videoFile={video}
-          onTranscriptionComplete={(data) => {
-  setSubtitle(data.text);
-  setSubtitleChunks(data.chunks || []);
-  setSubtitleMode("sentence");
-}}
-        />
-           
+
+          <Transcription
+            videoFile={video}
+            onTranscriptionComplete={(data) => {
+              setSubtitle(data.text);
+              setSubtitleChunks(data.chunks || []);
+              setSubtitleMode("sentence");
+            }}
+          />
+
           <div style={styles.positionRow}>
             <span style={styles.positionText}>
               Position: {positionMode === "automatic" ? "Automatic" : "Custom"}
@@ -300,6 +419,7 @@ export default function Dashboard() {
           />
 
           <label style={styles.label}>Subtitle Display Mode</label>
+
           <select
             value={subtitleMode}
             onChange={(e) => setSubtitleMode(e.target.value)}
@@ -311,9 +431,32 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.panel}>
-          <h3 style={styles.sectionTitle}>4. Font Settings</h3>
+          <h3 style={styles.sectionTitle}>4. Subtitle Animation</h3>
+
+          <label style={styles.label}>Choose Animation Style</label>
+
+          <select
+            value={subtitleAnimation}
+            onChange={(e) => setSubtitleAnimation(e.target.value)}
+            style={styles.select}
+          >
+            {animationOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <p style={styles.hint}>
+            Select an animation to preview how your subtitles appear.
+          </p>
+        </div>
+
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>5. Font Settings</h3>
 
           <label style={styles.label}>Font Family</label>
+
           <select
             value={fontFamily}
             onChange={(e) => setFontFamily(e.target.value)}
@@ -325,6 +468,7 @@ export default function Dashboard() {
             <option value="Impact">Impact</option>
             <option value="Tahoma">Tahoma</option>
             <option value="Trebuchet MS">Trebuchet MS</option>
+
             {fontUrl && (
               <option value="UserUploadedFont">
                 {fontName || "Uploaded Font"}
@@ -369,6 +513,7 @@ export default function Dashboard() {
           <label style={styles.label}>
             Font Size: {fontSize}px
           </label>
+
           <input
             type="range"
             min="12"
@@ -379,6 +524,7 @@ export default function Dashboard() {
           />
 
           <label style={styles.label}>Font Color</label>
+
           <input
             type="color"
             value={fontColor}
@@ -406,9 +552,10 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.panel}>
-          <h3 style={styles.sectionTitle}>5. Background Color</h3>
+          <h3 style={styles.sectionTitle}>6. Background Color</h3>
 
           <label style={styles.label}>Background Option</label>
+
           <select
             value={bgMode}
             onChange={(e) => setBgMode(e.target.value)}
@@ -421,6 +568,7 @@ export default function Dashboard() {
           {bgMode === "color" && (
             <>
               <label style={styles.label}>Select Color</label>
+
               <input
                 type="color"
                 value={bgColor}
@@ -432,7 +580,7 @@ export default function Dashboard() {
         </div>
 
         <div style={styles.panel}>
-          <h3 style={styles.sectionTitle}>6. Caption Templates</h3>
+          <h3 style={styles.sectionTitle}>7. Caption Templates</h3>
 
           <div style={styles.templateGrid}>
             {templates.map((template) => (
@@ -453,21 +601,23 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-<div style={styles.panel}>
-  <h3 style={styles.sectionTitle}>7. Export Video</h3>
 
-  <VideoExport
-    videoFile={video}
-    subtitleChunks={subtitleChunks}
-    fontSize={fontSize}
-    fontColor={fontColor}
-    bold={bold}
-    outline={outline}
-  />
-</div>
+        <div style={styles.panel}>
+          <h3 style={styles.sectionTitle}>8. Export Video</h3>
+
+          <VideoExport
+            videoFile={video}
+            subtitleChunks={subtitleChunks}
+            fontSize={fontSize}
+            fontColor={fontColor}
+            bold={bold}
+            outline={outline}
+            subtitleAnimation={subtitleAnimation}
+          />
+        </div>
+
         <div style={styles.notice}>
-          Automatic transcription and MP4 export are still under development.
-          Your current subtitle settings are shown in the video preview only.
+          Your subtitle settings and animation can be previewed before export.
         </div>
       </section>
 
@@ -593,6 +743,7 @@ const styles = {
     userSelect: "none",
     touchAction: "none",
     pointerEvents: "auto",
+    transformOrigin: "center center",
   },
   hint: {
     color: "#9ca9c0",
