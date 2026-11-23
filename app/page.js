@@ -6,37 +6,37 @@ const features = [
     icon: "✦",
     title: "AI Video Transcription",
     description:
-      "Generate subtitles from your videos using AI speech recognition.",
+      "Automatically convert speech in your videos into subtitles using AI-powered speech recognition.",
   },
   {
     icon: "🌍",
-    title: "Multiple Languages",
+    title: "Multiple Subtitle Languages",
     description:
-      "Create subtitles in Urdu, English, Hindi and many other languages.",
+      "Create video subtitles in Urdu, English, Hindi and other supported languages.",
   },
   {
     icon: "🎨",
     title: "Custom Caption Styles",
     description:
-      "Customize fonts, colors, backgrounds and professional caption templates.",
+      "Customize subtitle fonts, colors, backgrounds and professional caption templates.",
   },
   {
     icon: "⚡",
     title: "Animated Subtitles",
     description:
-      "Make your captions more engaging with different animation styles.",
+      "Make your video captions engaging with different subtitle animation styles.",
   },
   {
     icon: "↗",
-    title: "Drag and Position",
+    title: "Drag and Position Captions",
     description:
-      "Move your subtitles anywhere inside your video preview.",
+      "Move your subtitles anywhere inside your video preview and choose your preferred position.",
   },
   {
     icon: "▶",
     title: "MP4 Video Export",
     description:
-      "Export your videos with subtitles and audio in MP4 format.",
+      "Export your finished videos with subtitles and audio in MP4 format.",
   },
 ];
 
@@ -44,17 +44,53 @@ const steps = [
   {
     number: "01",
     title: "Upload Your Video",
-    description: "Choose a video from your device and open your workspace.",
+    description:
+      "Choose a video from your device and open your CAPKUP AI subtitle editing workspace.",
   },
   {
     number: "02",
-    title: "Generate and Customize",
-    description: "Create subtitles and customize their appearance.",
+    title: "Generate and Customize Subtitles",
+    description:
+      "Generate subtitles using AI and customize fonts, colors, animations and caption positions.",
   },
   {
     number: "03",
-    title: "Export Your Video",
-    description: "Export your finished video with subtitles in MP4 format.",
+    title: "Export Your Subtitled Video",
+    description:
+      "Export your completed video with subtitles and audio in MP4 format.",
+  },
+];
+
+const faqs = [
+  {
+    question: "What is CAPKUP AI?",
+    answer:
+      "CAPKUP AI is an online AI video subtitle generator. It helps you generate subtitles from videos, customize captions and export subtitled videos in MP4 format.",
+  },
+  {
+    question: "Can I generate subtitles automatically?",
+    answer:
+      "Yes. CAPKUP AI uses AI speech recognition to transcribe speech from your uploaded video and generate subtitle text with timestamps.",
+  },
+  {
+    question: "Which languages does CAPKUP AI support?",
+    answer:
+      "CAPKUP AI includes language options such as Urdu, English and Hindi, along with other available transcription languages.",
+  },
+  {
+    question: "Can I customize subtitle fonts and colors?",
+    answer:
+      "Yes. You can customize font styles, font sizes, text colors, backgrounds, outlines and caption templates.",
+  },
+  {
+    question: "Can I move subtitles on my video?",
+    answer:
+      "Yes. You can drag the subtitle position inside the video preview and place captions where you want them.",
+  },
+  {
+    question: "Can I export videos with subtitles?",
+    answer:
+      "Yes. CAPKUP AI lets you export your subtitled video as an MP4 file with its audio.",
   },
 ];
 
@@ -210,7 +246,7 @@ export default function Home() {
         }
 
         .hero-description {
-          max-width: 620px;
+          max-width: 680px;
           margin: 0 auto;
           color: #a7b4ca;
           font-size: 17px;
@@ -358,6 +394,63 @@ export default function Home() {
           line-height: 1.8;
         }
 
+        .about-content {
+          max-width: 850px;
+          margin: auto;
+          padding: 30px;
+          border: 1px solid #293650;
+          border-radius: 15px;
+          background: #121c30;
+        }
+
+        .about-content h3 {
+          color: #ffffff;
+          font-size: 21px;
+          margin: 0 0 14px;
+        }
+
+        .about-content p {
+          color: #a7b4ca;
+          font-size: 14px;
+          line-height: 1.9;
+          margin: 0 0 15px;
+        }
+
+        .faq-list {
+          max-width: 850px;
+          margin: auto;
+          display: grid;
+          gap: 13px;
+        }
+
+        .faq-item {
+          border: 1px solid #293650;
+          border-radius: 12px;
+          background: #151e32;
+          overflow: hidden;
+        }
+
+        .faq-item summary {
+          padding: 20px;
+          cursor: pointer;
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: bold;
+          line-height: 1.6;
+        }
+
+        .faq-item summary::marker {
+          color: #78aaff;
+        }
+
+        .faq-item p {
+          padding: 0 20px 20px;
+          margin: 0;
+          color: #a7b4ca;
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
         .cta {
           max-width: 1100px;
           margin: 45px auto 90px;
@@ -459,6 +552,10 @@ export default function Home() {
             grid-template-columns: 1fr;
           }
 
+          .about-content {
+            padding: 22px;
+          }
+
           .cta {
             margin: 25px 15px 60px;
             padding: 45px 20px;
@@ -491,9 +588,10 @@ export default function Home() {
           </div>
         </Link>
 
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Main navigation">
           <a href="#features">Features</a>
           <a href="#how-it-works">How It Works</a>
+          <a href="#faq">FAQ</a>
         </nav>
 
         <Link href="/login" className="login-btn">
@@ -508,17 +606,18 @@ export default function Home() {
           </div>
 
           <h1>
-            Your Videos.
+            AI Video Subtitle Generator.
             <br />
             <span className="gradient-text">
-              Your Captions.
+              Your Videos. Your Captions.
             </span>
           </h1>
 
           <p className="hero-description">
-            Create professional subtitles for your videos with AI.
-            Customize captions, add animations and export your videos
-            with CAPKUP AI.
+            Create professional video subtitles online with CAPKUP AI.
+            Automatically transcribe speech, generate captions in Urdu,
+            English and Hindi, customize subtitle styles and export
+            your videos with subtitles in MP4 format.
           </p>
 
           <div className="hero-actions">
@@ -532,7 +631,7 @@ export default function Home() {
           </div>
 
           <p className="hero-note">
-            Upload. Customize. Export.
+            Upload. Transcribe. Customize. Export.
           </p>
         </div>
       </section>
@@ -540,9 +639,10 @@ export default function Home() {
       <section className="section" id="features">
         <div className="section-heading">
           <span>POWERFUL FEATURES</span>
-          <h2>Everything You Need for Subtitles</h2>
+          <h2>Online Video Subtitle Generator Features</h2>
           <p>
-            Simple tools to create and customize video captions.
+            Everything you need to generate, edit and export video captions
+            in one simple workspace.
           </p>
         </div>
 
@@ -560,9 +660,10 @@ export default function Home() {
       <section className="section" id="how-it-works">
         <div className="section-heading">
           <span>HOW IT WORKS</span>
-          <h2>Three Simple Steps</h2>
+          <h2>How to Add Subtitles to Your Videos</h2>
           <p>
-            Start creating your subtitled videos in your workspace.
+            Follow three simple steps to create your subtitled video with
+            CAPKUP AI.
           </p>
         </div>
 
@@ -577,11 +678,65 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section">
+        <div className="section-heading">
+          <span>ABOUT CAPKUP AI</span>
+          <h2>Create Video Captions Online with AI</h2>
+        </div>
+
+        <div className="about-content">
+          <h3>A Simple AI Subtitle Generator for Video Creators</h3>
+
+          <p>
+            CAPKUP AI is an online video subtitle generator designed to
+            help creators add captions to their videos. Use AI speech
+            recognition to turn spoken words into subtitle text, then
+            customize the appearance of your captions in the editing
+            workspace.
+          </p>
+
+          <p>
+            Whether you create YouTube videos, social media clips,
+            educational content or short videos, subtitles can help
+            viewers follow the spoken content. CAPKUP AI gives you tools
+            to adjust fonts, colors, backgrounds, animations and subtitle
+            positions before exporting your video.
+          </p>
+
+          <p>
+            Create Urdu subtitles, English captions and Hindi subtitles
+            with the available transcription language options. When your
+            video is ready, export it as an MP4 file with subtitles and
+            audio.
+          </p>
+        </div>
+      </section>
+
+      <section className="section" id="faq">
+        <div className="section-heading">
+          <span>FREQUENTLY ASKED QUESTIONS</span>
+          <h2>CAPKUP AI FAQs</h2>
+          <p>
+            Find answers about AI transcription, subtitle customization
+            and video export.
+          </p>
+        </div>
+
+        <div className="faq-list">
+          {faqs.map((faq) => (
+            <details className="faq-item" key={faq.question}>
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <section className="cta">
         <h2>Ready to Create Better Videos?</h2>
         <p>
-          Open your CAPKUP AI workspace and start creating subtitles
-          for your videos.
+          Generate AI subtitles, customize your captions and export
+          your videos with CAPKUP AI.
         </p>
 
         <Link href="/login" className="primary-btn">
